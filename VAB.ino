@@ -7,11 +7,11 @@
 #define Equip3Pin 6
 #define Equip4Pin 9
 
-char lightstate;
+boolean ep1, ep2, ep3, ep4, ls;
 
 void setup() 
 { 
-  Serial.begin(9600);
+  Serial.begin(38400);
   pinMode(OutPin, OUTPUT);
   pinMode(InPin, INPUT);
   pinMode(LedPin, OUTPUT);
@@ -19,13 +19,35 @@ void setup()
   pinMode(Equip2Pin, OUTPUT);
   pinMode(Equip3Pin, OUTPUT);
   pinMode(Equip4Pin, OUTPUT);
-  lightstate = '0';
+  ep1 = false;
+  ep2 = false;
+  ep3 = false;
+  ep4 = false;
+  ls = false;
 }
 
 void loop() 
 {
-  flat();
+  
+  if (Serial.available() > 0)
+  {
+    char command = Serial.read();
+    Serial.print(command);
+    flat(command);
+    OP();
+    delay(200);
+  }
 } 
+
+void OP()
+{
+  CT(Equip1Pin, ep1);
+  CT(Equip2Pin, ep2);
+  CT(Equip3Pin, ep3);
+  CT(Equip4Pin, ep4);
+  CT(LedPin, ls);
+  delay(200);
+}
 
 void CT(int EpNum, boolean Op)
 {
@@ -34,18 +56,26 @@ void CT(int EpNum, boolean Op)
   } else {
     digitalWrite(EpNum, LOW);
   }
-  delay(300);
 }
 
-void flat()
+void flat(char command)
 {
-  if (Serial.available() > 0)
-  {
-    lightstate = Serial.read();
-    Serial.print(lightstate);
-    if (lightstate == '0') {
+  switch (command) {
+      case 'A': { ep1 = true; break; }
+      case 'B': { ep2 = true; break; }
+      case 'C': { ep3 = true; break; }
+      case 'D': { ep4 = true; break; }
+      case 'a': { ep1 = false; break; }
+      case 'b': { ep2 = false; break; }
+      case 'c': { ep3 = false; break; }
+      case 'd': { ep4 = false; break; }
+      default: { break; }
+    }
+}
+/*
+    if (ls == '0') {
       CT(LedPin, true);
-    } else if(lightstate == '1') {
+    } else if(ls == '1') {
       CT(LedPin, false);
     } else {
       for (int i=0; i < 7; i++)
@@ -58,5 +88,4 @@ void flat()
         delay(200);
       }
     }
-  }
-}
+    */
