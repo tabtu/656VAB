@@ -1,29 +1,30 @@
-#define LedPin 13
 #define OutPin 1
 #define InPin 0
+#define LedPin 13
+#define Equip1Pin 5
+#define Equip1Pin_ 6
+#define Equip1PinS 4                                    
+#define Equip2Pin 9
+#define Equip2Pin_ 10
+#define Equip2PinS 8
 
-#define Equip1Pin 3
-#define Equip2Pin 5
-#define Equip3Pin 6
-#define Equip4Pin 9
-
-boolean ep1, ep2, ep3, ep4, ls;
+boolean ep1, _ep1, ep1s, ep2, _ep2, ep2s, ls;
 
 void setup() 
 { 
   Serial.begin(38400);
   pinMode(OutPin, OUTPUT);
   pinMode(InPin, INPUT);
-  pinMode(LedPin, OUTPUT);
   pinMode(Equip1Pin, OUTPUT);
+  pinMode(Equip1Pin_, OUTPUT);
+  pinMode(Equip1PinS, OUTPUT);
   pinMode(Equip2Pin, OUTPUT);
-  pinMode(Equip3Pin, OUTPUT);
-  pinMode(Equip4Pin, OUTPUT);
-  ep1 = false;
-  ep2 = false;
-  ep3 = false;
-  ep4 = false;
+  pinMode(Equip2Pin_, OUTPUT);
+  pinMode(Equip2PinS, OUTPUT);
+  ep1 = _ep1 = ep1s = false;
+  ep2 = _ep2 = ep2s = false;
   ls = false;
+  OP();
 }
 
 void loop() 
@@ -32,23 +33,31 @@ void loop()
   if (Serial.available() > 0)
   {
     char command = Serial.read();
-    Serial.print(command);
+    //Serial.print(command);
+    Serial.write(command);  // return the recog result msg
     flat(command);
     OP();
-    delay(200);
+    delay(300);
   }
-} 
+}
 
+/*
+* Reflash
+*/
 void OP()
 {
   CT(Equip1Pin, ep1);
+  CT(Equip1Pin_, _ep1);
+  CT(Equip1PinS, ep1s);
   CT(Equip2Pin, ep2);
-  CT(Equip3Pin, ep3);
-  CT(Equip4Pin, ep4);
+  CT(Equip2Pin_, _ep2);
+  CT(Equip2PinS, ep2s);
   CT(LedPin, ls);
-  delay(200);
 }
 
+/*
+* Set
+*/
 void CT(int EpNum, boolean Op)
 {
   if (Op == true) {
@@ -63,29 +72,34 @@ void flat(char command)
   switch (command) {
       case 'A': { ep1 = true; break; }
       case 'B': { ep2 = true; break; }
-      case 'C': { ep3 = true; break; }
-      case 'D': { ep4 = true; break; }
       case 'a': { ep1 = false; break; }
       case 'b': { ep2 = false; break; }
-      case 'c': { ep3 = false; break; }
-      case 'd': { ep4 = false; break; }
+      case '0': { ls = false; ep1s = false; ep2s = false; break; }
+      case '1': { ls = true; ep1s = true; ep2s = true; break; }
+      case '2': { flash(); break; }
+      case 't': { crazy(); break; }
       default: { break; }
     }
 }
-/*
-    if (ls == '0') {
-      CT(LedPin, true);
-    } else if(ls == '1') {
-      CT(LedPin, false);
-    } else {
-      for (int i=0; i < 7; i++)
-      {
-        //digitalWrite(LightPin, LOW);
-        digitalWrite(LedPin, LOW);
-        delay(200);
-        //digitalWrite(LightPin, HIGH);
-        digitalWrite(LedPin, HIGH);
-        delay(200);
-      }
-    }
-    */
+
+void crazy()
+{
+  for (int i=0; i < 10; i++) {
+    digitalWrite(Equip1Pin, HIGH);
+    digitalWrite(Equip2Pin, LOW);
+    delay(200);
+    digitalWrite(Equip1Pin, LOW);
+    digitalWrite(Equip2Pin, HIGH);
+    delay(200);
+  }
+}
+
+void flash()
+{
+  for (int i=0; i < 5; i++) {
+    digitalWrite(LedPin, LOW);
+    delay(100);
+    digitalWrite(LedPin, HIGH);
+    delay(100);
+  }
+}
